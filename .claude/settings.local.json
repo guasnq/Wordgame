@@ -3,7 +3,17 @@
     "allow": [
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(npm create:*)",
+      "Bash(npx create-vite:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run format:check:*)",
+      "Bash(npm run format:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
