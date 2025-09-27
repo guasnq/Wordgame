@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { GameMainPage } from "@/components/game/GameMainPage"
 import { SettingsPage } from "@/components/game/SettingsPage"
@@ -7,7 +6,7 @@ import { PresetPage } from "@/components/game/PresetPage"
 import { SavePage } from "@/components/game/SavePage"
 import type { PageType } from "@/types/page"
 
-function App() {
+export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>("game")
 
   const renderPage = () => {
@@ -29,5 +28,3 @@ function App() {
 
   return <div className="min-h-screen bg-background">{renderPage()}</div>
 }
-
-export default App

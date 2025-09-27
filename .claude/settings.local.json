@@ -17,7 +17,16 @@
       "Bash(tree:*)",
       "Bash(mkdir:*)",
       "Bash(npm run dev:*)",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(git checkout:*)",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_snapshot"
     ],
     "deny": [],
     "ask": []

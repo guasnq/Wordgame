@@ -1,28 +1,33 @@
-// 游戏相关类型定义
-
-export interface UserInput {
-  type: 'user_input' | 'option_click'
-  content: string
-  option_id?: 'A' | 'B' | 'C'
-  timestamp: number
+export interface StatusItem {
+  name: string
+  value: number | string
+  max?: number
+  type: "progress" | "number" | "text"
 }
 
-export interface GameOption {
-  id: 'A' | 'B' | 'C'
+export interface ActionOption {
+  id: string
   text: string
+}
+
+export interface Quest {
+  name: string
+  status: "进行中" | "已完成" | "未开始"
+  progress: number
+}
+
+export interface Relationship {
+  name: string
+  level: number
+  maxLevel: number
 }
 
 export interface GameState {
   scene: string
   narration: string
-  options: GameOption[]
-  status: Record<string, unknown>
-  custom?: Record<string, unknown>
-  round: number
-  timestamp: number
-}
-
-export interface GameHistory {
-  rounds: GameState[]
-  maxRounds: number
+  status: StatusItem[]
+  actions: ActionOption[]
+  inventory: string[]
+  quests: Quest[]
+  relationships: Relationship[]
 }
