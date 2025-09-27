@@ -15,7 +15,9 @@
       "Bash(npm run build:*)",
       "Bash(git add:*)",
       "Bash(tree:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": [],
     "ask": []
