@@ -363,7 +363,7 @@ export interface EventBusAPI {
 }
 
 // ============== 事件处理相关类型 ==============
-export type EventHandler<T = any> = (data: T) => void
+export type EventHandler<T = any> = (data: T) => void | Promise<void>
 
 export interface EmitOptions {
   async?: boolean
@@ -626,4 +626,41 @@ export interface FallbackResult {
   success: boolean
   data?: any
   partial: boolean
+}
+
+// ============== 模块通信接口 ==============
+
+/**
+ * 标准模块接口
+ * 根据系统架构设计文档4.2.1节模块接口规范
+ */
+export interface ModuleInterface {
+  name: string
+  version: string
+  dependencies: string[]
+  initialize(): Promise<void>
+  destroy(): Promise<void>
+  getAPI(): Record<string, Function>
+}
+
+/**
+ * 模块容器接口
+ * 用于模块间依赖注入和管理
+ */
+export interface ModuleContainer {
+  register<T>(name: string, module: T): void
+  resolve<T>(name: string): T
+  has(name: string): boolean
+  unregister(name: string): boolean
+  list(): string[]
+}
+
+/**
+ * 模块生命周期事件
+ */
+export interface ModuleLifecycleEvents {
+  'module:registered': { name: string; module: any }
+  'module:initialized': { name: string; module: any }
+  'module:destroyed': { name: string; module: any }
+  'module:error': { name: string; error: Error }
 }

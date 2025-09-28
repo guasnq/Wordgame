@@ -152,11 +152,31 @@ graph TD
 
 ### 阶段二：核心引擎模块（Core Engine）
 
-#### Task 4: 事件总线系统
-- [ ] 实现事件总线核心类 *📖 API接口文档.md → 3.5节 事件总线接口*
-- [ ] 事件订阅/发布机制 *📖 API接口文档.md → 3.5节 EventBusAPI*
-- [ ] 事件类型定义 *📖 API接口文档.md → 3.5节 核心游戏事件*
-- [ ] 模块间通信接口 *📖 系统架构设计文档.md → 4.2节 模块通信机制*
+#### Task 4: 事件总线系统 ✅
+- [x] 实现事件总线核心类 *📖 API接口文档.md → 3.5节 事件总线接口*
+- [x] 事件订阅/发布机制 *📖 API接口文档.md → 3.5节 EventBusAPI*
+- [x] 事件类型定义 *📖 API接口文档.md → 3.5节 核心游戏事件*
+- [x] 模块间通信接口 *📖 系统架构设计文档.md → 4.2节 模块通信机制*
+
+**已完成交付**:
+- [x] 完整的事件总线核心类 (src/modules/core/eventBus/EventBus.ts) - 支持类型安全的发布订阅机制
+- [x] 单例管理器 (src/modules/core/eventBus/EventBusManager.ts) - 全局唯一实例和生命周期管理
+- [x] 模块容器实现 (src/modules/core/eventBus/ModuleContainer.ts) - 模块依赖注入和通信
+- [x] 完整的类型定义系统 - EventBusAPI、GameEvent枚举、ModuleInterface等
+- [x] 开发环境调试支持 - 全局调试接口和性能监控
+- [x] 事件统计和监控功能 - 支持性能分析和错误追踪
+- [x] 异步事件处理支持 - 支持同步和异步事件处理模式，修复Promise错误处理机制
+- [x] 订阅优先级和过滤机制 - 高级事件订阅控制
+- [x] 业务代码迁移完成 - 兼容层(src/utils/gameEventHelpers.ts)确保现有代码正常工作
+- [x] 调试工具完善 - EventBusTest组件支持完整的事件测试和统计展示
+- [x] 浏览器测试验证通过 - 所有功能正常：普通事件、游戏事件、一次性事件、统计监控
+
+**修复的问题**:
+- [x] 异步事件处理Promise异常导致Unhandled rejection
+- [x] 类型定义不一致：统一使用新的事件总线类型系统
+- [x] 业务代码集成：删除旧的事件总线实现，迁移到新系统
+- [x] 调试组件兼容性：修复EventBusManager API调用方式
+- [x] 统计数据显示：修复undefined属性访问和Map对象处理
 
 #### Task 5: 游戏状态管理
 - [ ] 使用Zustand创建游戏状态store *📖 系统架构设计文档.md → 2.1.2节 状态管理*

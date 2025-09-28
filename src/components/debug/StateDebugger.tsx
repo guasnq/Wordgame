@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { useGameStore, gameSelectors } from "@/stores/gameStore"
 import { useMockApi } from "@/utils/mockApi"
-import { gameEventBus } from "@/utils/eventBus"
+import { gameEventBus } from "@/utils/gameEventHelpers"
 
 export function StateDebugger() {
   const [isOpen, setIsOpen] = useState(false)

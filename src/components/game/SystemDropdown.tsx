@@ -15,6 +15,9 @@ export function SystemDropdown({ onSystemClick }: SystemDropdownProps) {
     { id: "worldview", label: "世界观", icon: "🌍" },
     { id: "presets", label: "预设", icon: "📋" },
     { id: "saves", label: "存档", icon: "💾" },
+    ...(process.env.NODE_ENV === 'development' ? [
+      { id: "debug", label: "调试", icon: "🐛" }
+    ] : []),
   ]
 
   const handleOptionClick = (optionId: string) => {

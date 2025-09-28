@@ -1,1 +1,1 @@
-export type PageType = "game" | "settings" | "worldview" | "presets" | "saves"
+export type PageType = "game" | "settings" | "worldview" | "presets" | "saves" | "debug"

@@ -120,6 +120,9 @@ export function GameMainPage({ onNavigate }: GameMainPageProps) {
       case "saves":
         onNavigate("saves")
         break
+      case "debug":
+        onNavigate("debug")
+        break
     }
   }
 

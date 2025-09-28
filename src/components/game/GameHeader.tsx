@@ -76,6 +76,14 @@ export function GameHeader({ connectionStatus, onSystemClick }: GameHeaderProps)
             >
               存档
             </button>
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => onSystemClick?.("debug")}
+                className="text-sm px-3 py-1 bg-muted rounded hover:bg-muted/80 transition-colors"
+              >
+                调试
+              </button>
+            )}
             <ThemeToggle />
           </div>
         )}

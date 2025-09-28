@@ -1,4 +1,4 @@
-import { gameEventBus, gameEventHelpers } from './eventBus'
+import { gameEventBus, gameEventHelpers } from './gameEventHelpers'
 import { useGameStore } from '@/stores/gameStore'
 import { mockRounds, getRandomMockData, getRandomScene, getRandomNarration, getRandomOptions } from '@/constants/mockData'
 import type { GameOption, GameRound } from '@/stores/gameStore'
