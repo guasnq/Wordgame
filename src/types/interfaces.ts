@@ -2,12 +2,9 @@
 // 基于API接口文档的各个模块API接口定义
 
 import { 
-  GameEvent, 
   ConfigType, 
   ErrorCategory, 
-  RetryStrategy, 
-  RecoveryStrategy,
-  LogLevel 
+  RecoveryStrategy
 } from './enums'
 import { 
   UserInput, 
@@ -43,13 +40,33 @@ import {
   BaseError, 
   ProcessedError, 
   RetryConfig, 
-  FallbackHandler, 
   ErrorHandleResult, 
-  RecoveryPlan, 
   RecoveryResult, 
   RecoveryRecord, 
   ErrorMetrics 
 } from './error'
+
+
+export type {
+  GameState,
+  GameRound,
+  GameStateSnapshot,
+  StateUpdate,
+  StatePatch,
+  StateChangeCallback,
+  UnsubscribeFunction,
+  SaveResult,
+  LoadResult
+} from './game'
+
+export type { ValidationResult } from './config'
+
+// ============== 游戏状态校验结果 ==============
+export interface GameStateValidationResult {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+}
 
 // ============== 游戏引擎核心接口 ==============
 export interface GameEngineAPI {
@@ -89,7 +106,7 @@ export interface GameEngineAPI {
    * 加载游戏进度
    * @param saveData 存档数据
    */
-  loadGameProgress(saveData: any): Promise<LoadResult>
+  loadGameProgress(saveData: unknown): Promise<LoadResult>
 }
 
 // ============== 状态管理接口 ==============
@@ -123,7 +140,7 @@ export interface StateManagerAPI {
   /**
    * 验证状态完整性
    */
-  validateState(): ValidationResult
+  validateState(): GameStateValidationResult
 }
 
 // ============== AI服务适配器接口 ==============
@@ -204,32 +221,32 @@ export interface UIRendererAPI {
    * @param gameData 游戏数据
    * @param container 容器元素
    */
-  renderGame(gameData: any, container: HTMLElement): void
+  renderGame(gameData: unknown, container: HTMLElement): void
   
   /**
    * 更新界面内容
    * @param updates 更新数据
    */
-  updateUI(updates: any[]): void
+  updateUI(updates: unknown[]): void
   
   /**
    * 设置主题
    * @param theme 主题配置
    */
-  setTheme(theme: any): void
+  setTheme(theme: unknown): void
   
   /**
    * 切换布局
    * @param layout 布局配置
    */
-  switchLayout(layout: any): void
+  switchLayout(layout: unknown): void
   
   /**
    * 添加动画效果
    * @param element 目标元素
    * @param animation 动画配置
    */
-  addAnimation(element: HTMLElement, animation: any): Promise<void>
+  addAnimation(element: HTMLElement, animation: unknown): Promise<void>
   
   /**
    * 清除界面
@@ -243,27 +260,27 @@ export interface ComponentRendererAPI {
   /**
    * 渲染场景组件
    */
-  renderScene(scene: string, config: any): any
+  renderScene(scene: string, config: unknown): unknown
   
   /**
    * 渲染旁白组件
    */
-  renderNarration(narration: string, config: any): any
+  renderNarration(narration: string, config: unknown): unknown
   
   /**
    * 渲染选项组件
    */
-  renderOptions(options: any[], config: any): any
+  renderOptions(options: unknown[], config: unknown): unknown
   
   /**
    * 渲染状态栏组件
    */
-  renderStatusBar(status: any, config: any): any
+  renderStatusBar(status: unknown, config: unknown): unknown
   
   /**
    * 渲染扩展卡片
    */
-  renderExtensionCard(data: any, config: any): any
+  renderExtensionCard(data: unknown, config: unknown): unknown
 }
 
 // ============== 存储管理接口 ==============
@@ -275,7 +292,7 @@ export interface StorageManagerAPI {
    * @param data 数据
    * @param options 存储选项
    */
-  save(key: string, data: any, options?: StorageOptions): Promise<boolean>
+  save(key: string, data: unknown, options?: StorageOptions): Promise<boolean>
   
   /**
    * 加载数据
@@ -308,13 +325,13 @@ export interface StorageManagerAPI {
    * 导出数据
    * @param keys 要导出的键列表
    */
-  export(keys: string[]): Promise<any>
+  export(keys: string[]): Promise<unknown>
   
   /**
    * 导入数据
    * @param data 导入数据
    */
-  import(data: any): Promise<ImportResult>
+  import(data: unknown): Promise<ImportResult>
 }
 
 // ============== 事件总线接口 ==============
@@ -360,10 +377,15 @@ export interface EventBusAPI {
    * 获取事件统计
    */
   getStats(): EventStats
+  
+  /**
+   * 获取调试信息
+   */
+  getDebugInfo(): Record<string, unknown>
 }
 
 // ============== 事件处理相关类型 ==============
-export type EventHandler<T = any> = (data: T) => void | Promise<void>
+export type EventHandler<T = unknown> = (data: T) => void | Promise<void>
 
 export interface EmitOptions {
   async?: boolean
@@ -374,7 +396,7 @@ export interface EmitOptions {
 export interface SubscribeOptions {
   once?: boolean
   priority?: number
-  filter?: (data: any) => boolean
+  filter?: (data: unknown) => boolean
 }
 
 export interface EventStats {
@@ -455,7 +477,7 @@ export interface ErrorRecoveryManager {
   getRecoveryHistory(): RecoveryRecord[]
 }
 
-export type RecoveryHandler = (error: ProcessedError, context: any) => Promise<RecoveryResult>
+export type RecoveryHandler = (error: ProcessedError, context: unknown) => Promise<RecoveryResult>
 
 // ============== 重试策略接口 ==============
 export interface RetryStrategyInterface {
@@ -554,7 +576,7 @@ export interface CacheManager {
    * @param value 缓存值
    * @param ttl 生存时间(秒)
    */
-  set(key: string, value: any, ttl?: number): void
+  set(key: string, value: unknown, ttl?: number): void
   
   /**
    * 获取缓存
@@ -589,7 +611,7 @@ export interface CacheStats {
 
 // ============== 操作接口 ==============
 export interface Operation {
-  execute(): Promise<any>
+  execute(): Promise<unknown>
   abort?(): void
   getProgress?(): number
 }
@@ -598,16 +620,16 @@ export interface Operation {
 export interface ErrorHandlingFlow {
   
   // 第一步：约束检查
-  constraintCheck(input: any): ConstraintCheckResult
+  constraintCheck(input: unknown): ConstraintCheckResult
   
   // 第二步：数据验证
-  validate(data: any, schema: any): ValidationResult
+  validate(data: unknown, schema: unknown): ValidationResult
   
   // 第三步：备用方案
-  applyFallback(error: BaseError, context: any): FallbackResult
+  applyFallback(error: BaseError, context: unknown): FallbackResult
   
   // 第四步：重试机制
-  executeWithRetry(operation: Operation, config: RetryConfig): Promise<any>
+  executeWithRetry(operation: Operation, config: RetryConfig): Promise<unknown>
 }
 
 export interface ConstraintCheckResult {
@@ -618,13 +640,13 @@ export interface ConstraintCheckResult {
 export interface ConstraintViolation {
   field: string
   constraint: string
-  violatedValue: any
+  violatedValue: unknown
   message: string
 }
 
 export interface FallbackResult {
   success: boolean
-  data?: any
+  data?: unknown
   partial: boolean
 }
 
@@ -640,7 +662,7 @@ export interface ModuleInterface {
   dependencies: string[]
   initialize(): Promise<void>
   destroy(): Promise<void>
-  getAPI(): Record<string, Function>
+  getAPI(): Record<string, (...args: unknown[]) => unknown>
 }
 
 /**
@@ -659,8 +681,14 @@ export interface ModuleContainer {
  * 模块生命周期事件
  */
 export interface ModuleLifecycleEvents {
-  'module:registered': { name: string; module: any }
-  'module:initialized': { name: string; module: any }
-  'module:destroyed': { name: string; module: any }
+  'module:registered': { name: string; module: unknown }
+  'module:initialized': { name: string; module: unknown }
+  'module:destroyed': { name: string; module: unknown }
   'module:error': { name: string; error: Error }
 }
+
+
+
+
+
+

@@ -1,30 +1,30 @@
-/**
+﻿/**
  * 事件总线模块导出
  * 提供统一的事件总线访问接口
  */
 
-// 导出核心类
-export { EventBus } from './EventBus'
-export { EventBusManager, globalEventBus, eventBusManager } from './EventBusManager'
-export { ModuleContainerImpl, globalModuleContainer } from './ModuleContainer'
-
-// 导出类型定义（从types中重新导出）
-export type { 
-  EventBusAPI, 
-  EventHandler, 
-  EmitOptions, 
-  SubscribeOptions, 
+import { EventBus } from "./EventBus"
+import { EventBusManager, globalEventBus, eventBusManager } from "./EventBusManager"
+import { ModuleContainerImpl, globalModuleContainer } from "./ModuleContainer"
+import type {
+  EventBusAPI,
+  EventHandler,
+  EmitOptions,
+  SubscribeOptions,
   EventStats,
-  UnsubscribeFunction 
-} from '../../../types/interfaces'
+  UnsubscribeFunction,
+} from "@/types/interfaces"
+import { GameEvent } from "@/types/enums"
 
-export { GameEvent } from '../../../types/enums'
+export { EventBus, EventBusManager, globalEventBus, eventBusManager, ModuleContainerImpl, globalModuleContainer }
+export type { EventBusAPI, EventHandler, EmitOptions, SubscribeOptions, EventStats, UnsubscribeFunction }
+export { GameEvent }
 
 /**
  * 便捷函数：获取全局事件总线实例
  * @returns 全局事件总线实例
  */
-export function getEventBus() {
+export function getEventBus(): EventBusAPI {
   return globalEventBus
 }
 
@@ -34,8 +34,8 @@ export function getEventBus() {
  * @param data 事件数据
  * @param options 发布选项
  */
-export function emit<T>(event: string, data: T, options?: EmitOptions) {
-  return globalEventBus.emit(event, data, options)
+export function emit<T>(event: string, data: T, options?: EmitOptions): void {
+  globalEventBus.emit(event, data, options)
 }
 
 /**
@@ -45,7 +45,7 @@ export function emit<T>(event: string, data: T, options?: EmitOptions) {
  * @param options 订阅选项
  * @returns 取消订阅函数
  */
-export function on<T>(event: string, handler: EventHandler<T>, options?: SubscribeOptions) {
+export function on<T>(event: string, handler: EventHandler<T>, options?: SubscribeOptions): UnsubscribeFunction {
   return globalEventBus.on(event, handler, options)
 }
 
@@ -55,7 +55,7 @@ export function on<T>(event: string, handler: EventHandler<T>, options?: Subscri
  * @param handler 事件处理器
  * @returns 取消订阅函数
  */
-export function once<T>(event: string, handler: EventHandler<T>) {
+export function once<T>(event: string, handler: EventHandler<T>): UnsubscribeFunction {
   return globalEventBus.once(event, handler)
 }
 
@@ -64,6 +64,6 @@ export function once<T>(event: string, handler: EventHandler<T>) {
  * @param event 事件名称
  * @param handler 事件处理器（可选）
  */
-export function off<T>(event: string, handler?: EventHandler<T>) {
-  return globalEventBus.off(event, handler)
+export function off<T>(event: string, handler?: EventHandler<T>): void {
+  globalEventBus.off(event, handler)
 }

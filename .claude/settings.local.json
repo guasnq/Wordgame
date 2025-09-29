@@ -30,7 +30,10 @@
       "Bash(node:*)",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_evaluate",
-      "mcp__playwright__browser_type"
+      "mcp__playwright__browser_type",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

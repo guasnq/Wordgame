@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 事件总线核心实现
  * 基于API接口文档3.5节事件总线接口的完整实现
  */
@@ -15,21 +15,13 @@ import type {
 /**
  * 内部订阅者信息结构
  */
-interface Subscriber<T = any> {
+interface Subscriber<T = unknown> {
   handler: EventHandler<T>
   options: SubscribeOptions
   id: string
   createdAt: number
 }
 
-/**
- * 事件处理结果
- */
-interface EventProcessingResult {
-  success: boolean
-  duration: number
-  error?: Error
-}
 
 /**
  * 事件总线核心类
@@ -43,7 +35,7 @@ interface EventProcessingResult {
  * - 内存泄漏防护
  */
 export class EventBus implements EventBusAPI {
-  private subscribers = new Map<string, Set<Subscriber>>()
+  private subscribers = new Map<string, Set<Subscriber<unknown>>>()
   private stats = {
     totalEvents: 0,
     eventsByType: new Map<string, number>(),
@@ -72,8 +64,12 @@ export class EventBus implements EventBusAPI {
         return
       }
 
+      const typedSubscribers = Array.from(eventSubscribers).map((subscriber) =>
+        subscriber as Subscriber<T>
+      )
+
       // 将订阅者转换为数组并按优先级排序
-      const sortedSubscribers = Array.from(eventSubscribers).sort((a, b) => {
+      const sortedSubscribers = typedSubscribers.sort((a, b) => {
         const priorityA = a.options.priority || 0
         const priorityB = b.options.priority || 0
         return priorityB - priorityA // 高优先级在前
@@ -121,11 +117,11 @@ export class EventBus implements EventBusAPI {
 
     // 确保事件订阅者集合存在
     if (!this.subscribers.has(event)) {
-      this.subscribers.set(event, new Set())
+      this.subscribers.set(event, new Set<Subscriber<unknown>>())
     }
 
     // 添加订阅者
-    this.subscribers.get(event)!.add(subscriber)
+    this.subscribers.get(event)!.add(subscriber as Subscriber<unknown>)
     this.stats.subscriberCount++
 
     // 返回取消订阅函数
@@ -286,10 +282,10 @@ export class EventBus implements EventBusAPI {
    * 移除订阅者
    * @private
    */
-  private removeSubscriber(event: string, subscriber: Subscriber): void {
+  private removeSubscriber<T>(event: string, subscriber: Subscriber<T>): void {
     const eventSubscribers = this.subscribers.get(event)
-    if (eventSubscribers && eventSubscribers.has(subscriber)) {
-      eventSubscribers.delete(subscriber)
+    if (eventSubscribers && eventSubscribers.has(subscriber as Subscriber<unknown>)) {
+      eventSubscribers.delete(subscriber as Subscriber<unknown>)
       this.stats.subscriberCount--
 
       // 如果该事件没有订阅者了，移除事件键
@@ -311,7 +307,7 @@ export class EventBus implements EventBusAPI {
    * 获取调试信息
    * @returns 调试信息对象
    */
-  getDebugInfo(): Record<string, any> {
+  getDebugInfo(): Record<string, unknown> {
     return {
       activeEvents: Array.from(this.subscribers.keys()),
       subscribersPerEvent: Object.fromEntries(
@@ -339,3 +335,6 @@ export class EventBus implements EventBusAPI {
     this.subscriberIdCounter = 0
   }
 }
+
+
+

@@ -167,7 +167,7 @@ export interface ErrorContext {
   gameRound?: number
   userId?: string
   requestId?: string
-  additionalData?: Record<string, any>
+  additionalData?: Record<string, unknown>
 }
 
 // ============== 网络错误 ==============
@@ -191,7 +191,7 @@ export interface StorageError extends BaseError {
 export interface ValidationError extends BaseError {
   severity: ErrorSeverity.LOW
   field: string
-  value: any
+  value: unknown
   constraint: string
   retryable: false
 }
@@ -282,7 +282,7 @@ export interface RetryConfig {
 // ============== 降级处理器 ==============
 export interface FallbackHandler {
   canHandle: (error: BaseError) => boolean
-  handle: (error: BaseError, context: any) => Promise<any>
+  handle: (error: BaseError, context: unknown) => Promise<unknown>
   priority: number
 }
 
@@ -324,7 +324,7 @@ export interface ErrorHandleResult {
 // ============== 恢复动作 ==============
 export interface RecoveryAction {
   type: RecoveryStrategy
-  params?: any
+  params?: Record<string, unknown>
   delay?: number
   maxAttempts?: number
 }
@@ -396,7 +396,7 @@ export interface ConstraintCheckResult {
 export interface ConstraintViolation {
   field: string
   constraint: string
-  violatedValue: any
+  violatedValue: unknown
   message: string
 }
 
@@ -404,13 +404,13 @@ export interface ConstraintViolation {
 export interface ValidationResult {
   valid: boolean
   errors: ValidationError[]
-  sanitized?: any
+  sanitized?: unknown
 }
 
 // ============== 降级结果 ==============
 export interface FallbackResult {
   success: boolean
-  data?: any
+  data?: unknown
   partial: boolean
 }
 
@@ -425,7 +425,7 @@ export interface RecoveryPlan {
 // ============== 恢复动作详情 ==============
 export interface RecoveryActionDetail {
   type: 'cleanup' | 'rollback' | 'notify' | 'log' | 'metric'
-  handler: (error: BaseError, context: any) => Promise<void>
+  handler: (error: BaseError, context: unknown) => Promise<void>
   critical: boolean
 }
 
@@ -433,7 +433,7 @@ export interface RecoveryActionDetail {
 export interface RecoveryResult {
   success: boolean
   message: string
-  newState?: any
+  newState?: unknown
   nextAction?: string
 }
 

@@ -1,4 +1,4 @@
-// 基础工具函数库
+﻿// 基础工具函数库
 // 基于API接口文档 7.3节 测试工具类
 
 import { ERROR_CODES, SYSTEM_LIMITS } from '../constants'
@@ -380,14 +380,18 @@ export class ErrorUtils {
    * @param error 错误对象
    */
   static isNetworkError(error: unknown): boolean {
-    const networkCodes = [
+    const networkCodes: number[] = [
       ERROR_CODES.CONNECTION_FAILED,
       ERROR_CODES.CONNECTION_TIMEOUT,
       ERROR_CODES.DNS_RESOLUTION_FAILED,
       ERROR_CODES.NETWORK_UNREACHABLE
     ]
     
-    return error && typeof error === 'object' && 'code' in error && networkCodes.includes((error as { code: unknown }).code as number)
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      const codeValue = (error as { code: unknown }).code
+      return networkCodes.includes(codeValue as number)
+    }
+    return false
   }
 
   /**
@@ -395,14 +399,18 @@ export class ErrorUtils {
    * @param error 错误对象
    */
   static isRetryableError(error: unknown): boolean {
-    const retryableCodes = [
+    const retryableCodes: number[] = [
       ERROR_CODES.CONNECTION_TIMEOUT,
       ERROR_CODES.AI_REQUEST_TIMEOUT,
       ERROR_CODES.AI_RATE_LIMIT_ERROR,
       ERROR_CODES.TOO_MANY_REQUESTS
     ]
     
-    return error && typeof error === 'object' && 'code' in error && retryableCodes.includes((error as { code: unknown }).code as number)
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      const codeValue = (error as { code: unknown }).code
+      return retryableCodes.includes(codeValue as number)
+    }
+    return false
   }
 
   /**
@@ -456,5 +464,6 @@ export interface StandardError {
   stack?: string
 }
 
-// 导出所有工具类
-export { DelayUtils, ValidationUtils, FormatUtils, StorageUtils, ErrorUtils }
+
+
+

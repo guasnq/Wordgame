@@ -39,7 +39,7 @@ export const gameEventHelpers = {
     })
   },
 
-  emitRoundCompleted: (roundNumber: number, data: any) => {
+  emitRoundCompleted: (roundNumber: number, data: unknown) => {
     EventBusManager.getInstance().getEventBus().emit(GameEvent.ROUND_COMPLETED, { 
       roundNumber, 
       data 
@@ -53,7 +53,7 @@ export const gameEventHelpers = {
     })
   },
 
-  emitAIRequestCompleted: (response: any) => {
+  emitAIRequestCompleted: (response: unknown) => {
     EventBusManager.getInstance().getEventBus().emit(GameEvent.AI_REQUEST_COMPLETED, { 
       response 
     })
@@ -66,7 +66,7 @@ export const gameEventHelpers = {
   },
 
   // 错误事件发射器
-  emitError: (error: string, context?: any) => {
+  emitError: (error: string, context?: unknown) => {
     EventBusManager.getInstance().getEventBus().emit(GameEvent.ERROR_OCCURRED, { 
       error, 
       context 
@@ -74,7 +74,7 @@ export const gameEventHelpers = {
   },
 
   // 调试事件发射器
-  emitDebugMessage: (message: string, data?: any) => {
+  emitDebugMessage: (message: string, data?: unknown) => {
     EventBusManager.getInstance().getEventBus().emit(GameEvent.DEBUG_MESSAGE, { 
       message, 
       data 
@@ -84,19 +84,19 @@ export const gameEventHelpers = {
 
 // 兼容的事件总线接口
 export const gameEventBus = {
-  emit: (event: string, data: any) => {
+  emit: (event: string, data: unknown) => {
     EventBusManager.getInstance().getEventBus().emit(event, data)
   },
 
-  on: (event: string, handler: (data: any) => void) => {
+  on: (event: string, handler: (data: unknown) => void) => {
     return EventBusManager.getInstance().getEventBus().on(event, handler)
   },
 
-  off: (event: string, handler: (data: any) => void) => {
+  off: (event: string, handler: (data: unknown) => void) => {
     EventBusManager.getInstance().getEventBus().off(event, handler)
   },
 
-  once: (event: string, handler: (data: any) => void) => {
+  once: (event: string, handler: (data: unknown) => void) => {
     return EventBusManager.getInstance().getEventBus().once(event, handler)
   }
 }

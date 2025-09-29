@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 模块容器实现
  * 提供模块间依赖注入和生命周期管理
  */
@@ -14,7 +14,7 @@ import { globalEventBus } from './EventBusManager'
  * 模块注册信息
  */
 interface ModuleRegistration {
-  module: any
+  module: unknown
   isInitialized: boolean
   registeredAt: number
   initializedAt?: number
@@ -58,6 +58,9 @@ export class ModuleContainerImpl implements ModuleContainer {
     }
 
     this.modules.set(name, registration)
+
+    // 检查循环依赖
+    this.detectCircularDependencies()
 
     // 发布模块注册事件
     globalEventBus.emit<ModuleLifecycleEvents['module:registered']>('module:registered', {
@@ -252,15 +255,20 @@ export class ModuleContainerImpl implements ModuleContainer {
    * 检查是否为标准模块接口
    * @private
    */
-  private isStandardModule(module: any): module is ModuleInterface {
+  private isStandardModule(module: unknown): module is ModuleInterface {
+    if (typeof module !== 'object' || module === null) {
+      return false
+    }
+
+    const candidate = module as Partial<ModuleInterface>
+
     return (
-      module &&
-      typeof module.name === 'string' &&
-      typeof module.version === 'string' &&
-      Array.isArray(module.dependencies) &&
-      typeof module.initialize === 'function' &&
-      typeof module.destroy === 'function' &&
-      typeof module.getAPI === 'function'
+      typeof candidate.name === 'string' &&
+      typeof candidate.version === 'string' &&
+      Array.isArray(candidate.dependencies) &&
+      typeof candidate.initialize === 'function' &&
+      typeof candidate.destroy === 'function' &&
+      typeof candidate.getAPI === 'function'
     )
   }
 
@@ -268,7 +276,7 @@ export class ModuleContainerImpl implements ModuleContainer {
    * 提取模块依赖关系
    * @private
    */
-  private extractDependencies(module: any): string[] | undefined {
+  private extractDependencies(module: unknown): string[] | undefined {
     if (this.isStandardModule(module)) {
       return module.dependencies
     }
@@ -352,3 +360,7 @@ export class ModuleContainerImpl implements ModuleContainer {
  * 全局模块容器实例
  */
 export const globalModuleContainer = new ModuleContainerImpl()
+
+
+
+

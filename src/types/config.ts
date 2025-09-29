@@ -73,7 +73,7 @@ export interface StatusField {
 }
 
 export interface FieldConfig {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface ProgressFieldConfig extends FieldConfig {
@@ -188,7 +188,7 @@ export interface ExtensionConfig {
 }
 
 export interface ExtensionSpecificConfig {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // ============== 预设配置 ==============
@@ -440,7 +440,7 @@ export interface ConfigTemplate {
   description: string
   category: string
   type: ConfigType
-  template: any
+  template: unknown
   variables: TemplateVariable[]
   version: string
   createdAt: number
@@ -451,7 +451,7 @@ export interface TemplateVariable {
   name: string
   description: string
   type: 'string' | 'number' | 'boolean' | 'array' | 'object'
-  defaultValue: any
+  defaultValue: unknown
   required: boolean
   validation?: ValidationRule
 }
@@ -474,7 +474,7 @@ export interface ValidationError {
   field: string
   message: string
   code: string
-  value?: any
+  value?: unknown
 }
 
 export interface ValidationWarning {

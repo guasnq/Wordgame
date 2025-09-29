@@ -134,7 +134,7 @@ export interface GameState {
   history: GameRound[]
   
   // 当前回合数据
-  currentRound: {
+  currentRoundData: {
     scene: string
     narration: string
     options: GameOption[]
@@ -242,3 +242,5 @@ export interface Relationship {
   level: number
   maxLevel: number
 }
+
+

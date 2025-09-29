@@ -126,7 +126,7 @@ const AIErrorFallback: React.FC<ErrorFallbackProps & {
   onRetry?: () => void
   provider?: string 
 }> = ({ 
-  error, 
+  error: _error, 
   resetError, 
   onRetry,
   provider = 'AI服务',

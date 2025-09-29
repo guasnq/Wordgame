@@ -1,12 +1,13 @@
-import { gameEventBus, gameEventHelpers } from './gameEventHelpers'
+﻿import { gameEventBus, gameEventHelpers } from './gameEventHelpers'
 import { useGameStore } from '@/stores/gameStore'
 import { mockRounds, getRandomMockData, getRandomScene, getRandomNarration, getRandomOptions } from '@/constants/mockData'
 import type { GameOption, GameRound } from '@/stores/gameStore'
+import type { StatusItem, Quest, Relationship } from '@/types/game'
 
 // Mock API响应接口
 export interface MockApiResponse {
   success: boolean
-  data?: any
+  data?: MockAIResponse
   error?: string
   delay?: number
 }
@@ -16,8 +17,21 @@ export interface MockAIResponse {
   scene: string
   narration: string
   options: GameOption[]
-  status: Array<any>
-  custom?: Record<string, any>
+  status: StatusItem[]
+  custom?: MockAICustomPayload
+}
+
+type InventoryRecord = {
+  name: string
+  count: number
+  description?: string
+}
+
+type MockAICustomPayload = {
+  quests?: Quest[]
+  relationships?: Relationship[]
+  inventory?: InventoryRecord[]
+  cards?: Record<string, unknown>
 }
 
 // Mock API类
@@ -145,7 +159,7 @@ class MockApi {
       narration: roundData.narration,
       options: roundData.options,
       status: roundData.status,
-      custom: roundData.customData
+      custom: this.normalizeCustomData(roundData.customData),
     }
   }
 
@@ -177,7 +191,7 @@ class MockApi {
   }
 
   // 生成随机状态更新
-  private generateRandomStatusUpdate() {
+  private generateRandomStatusUpdate(): StatusItem[] {
     return [
       { name: "生命值", value: Math.floor(Math.random() * 100) + 1, max: 100, type: "progress" },
       { name: "魔力", value: Math.floor(Math.random() * 100) + 1, max: 100, type: "progress" },
@@ -187,7 +201,7 @@ class MockApi {
   }
 
   // 生成随机自定义数据
-  private generateRandomCustomData() {
+  private generateRandomCustomData(): MockAICustomPayload {
     return {
       quests: [
         { name: "当前任务", status: "进行中", progress: Math.floor(Math.random() * 100) }
@@ -201,6 +215,41 @@ class MockApi {
     }
   }
 
+  private normalizeCustomData(customData?: Record<string, unknown>): MockAICustomPayload | undefined {
+    if (!customData) {
+      return undefined
+    }
+
+    const { quests, relationships, inventory, cards, ...rest } = customData as MockAICustomPayload & Record<string, unknown>
+    const normalized: MockAICustomPayload = {}
+
+    if (Array.isArray(quests)) {
+      normalized.quests = quests as Quest[]
+    }
+
+    if (Array.isArray(relationships)) {
+      normalized.relationships = relationships as Relationship[]
+    }
+
+    if (Array.isArray(inventory)) {
+      normalized.inventory = inventory as InventoryRecord[]
+    }
+
+    const baseCards = typeof cards === 'object' && cards !== null ? (cards as Record<string, unknown>) : undefined
+    const additionalEntries = Object.keys(rest)
+
+    if (additionalEntries.length > 0) {
+      normalized.cards = {
+        ...(baseCards ?? {}),
+        ...rest
+      }
+    } else if (baseCards) {
+      normalized.cards = baseCards
+    }
+
+    return normalized
+  }
+
   // 手动触发数据更新（用于测试）
   async triggerRandomUpdate(): Promise<MockApiResponse> {
     const randomData = getRandomMockData()
@@ -210,7 +259,13 @@ class MockApi {
     
     return {
       success: true,
-      data: randomData
+      data: {
+        scene: randomData.scene,
+        narration: randomData.narration,
+        options: randomData.options,
+        status: randomData.status,
+        custom: this.normalizeCustomData(randomData.customData),
+      },
     }
   }
 
@@ -374,3 +429,9 @@ export const useMockApi = () => {
 
 // 导出默认实例
 export default mockApi
+
+
+
+
+
+

@@ -1,16 +1,14 @@
-// AI服务相关类型定义
+﻿// AI服务相关类型定义
 // 支持三个主要AI服务商：DeepSeek、Gemini、SiliconFlow
 
-import { 
-  AIServiceType, 
-  AIProvider, 
-  SiliconFlowService, 
-  ErrorCode,
-  ErrorSeverity,
-  ErrorCategory 
+import {
+  AIServiceType,
+  AIProvider,
+  SiliconFlowService
 } from './enums'
 import { StatusConfig, ExtensionConfig } from './config'
-import { BaseError } from './error'
+import { BaseError, ErrorCode } from './error'
+import type { ParsedGameData as GameParsedData } from './game'
 
 // ============== 通用AI服务接口 ==============
 export interface AIServiceAdapter {
@@ -58,32 +56,10 @@ export interface RequestMetadata {
 export interface AIResponse {
   id: string
   success: boolean
-  data?: ParsedGameData
+  data?: GameParsedData
   error?: APIError
   metadata: ResponseMetadata
   timestamp: number
-}
-
-export interface ParsedGameData {
-  scene: string
-  narration: string
-  options: GameOption[]
-  status: GameStatus
-  custom: CustomData
-}
-
-export interface GameOption {
-  id: string
-  text: string
-  enabled: boolean
-}
-
-export interface GameStatus {
-  [fieldName: string]: any
-}
-
-export interface CustomData {
-  [cardName: string]: any
 }
 
 export interface ResponseMetadata {
@@ -250,7 +226,7 @@ export interface ProcessedError extends BaseError {
 
 export interface RecoveryAction {
   type: 'retry' | 'fallback' | 'switch_model' | 'user_action'
-  params?: any
+  params?: Record<string, unknown>
 }
 
 // ============== API错误 ==============
@@ -339,3 +315,4 @@ export interface AIUsage {
   completion_tokens: number
   total_tokens: number
 }
+

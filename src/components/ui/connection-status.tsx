@@ -267,7 +267,6 @@ const SimpleConnectionStatus: React.FC<{
 
 export { 
   ConnectionStatus, 
-  SimpleConnectionStatus,
-  connectionStatusVariants 
+  SimpleConnectionStatus
 }
 export type { ConnectionStatusProps, ConnectionInfo }

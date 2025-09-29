@@ -5,7 +5,6 @@ import { SettingsPage } from "@/components/game/SettingsPage"
 import { WorldViewPage } from "@/components/game/WorldViewPage"
 import { PresetPage } from "@/components/game/PresetPage"
 import { SavePage } from "@/components/game/SavePage"
-import { EventBusTest } from "@/components/debug/EventBusTest"
 import type { PageType } from "@/types/page"
 
 function App() {
@@ -33,7 +32,10 @@ function App() {
               >
                 ← 返回游戏
               </button>
-              <EventBusTest />
+              <div className="text-center text-gray-500">
+                <p>调试组件已被移除</p>
+                <p>如需调试功能，请重新添加相关组件</p>
+              </div>
             </div>
           </div>
         )

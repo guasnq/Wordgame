@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { StatusItem, Quest, Relationship } from '@/types/game'
 
@@ -16,7 +16,7 @@ export interface GameRound {
   narration: string
   options: GameOption[]
   status: StatusItem[]
-  customData?: Record<string, any>
+  customData?: Record<string, unknown>
   timestamp: number
 }
 
@@ -34,7 +34,7 @@ export interface GameState {
   quests: Quest[]
   relationships: Relationship[]
   inventory: Array<{ name: string; count: number; description?: string }>
-  customCards: Record<string, any>
+  customCards: Record<string, unknown>
   
   // 游戏历史
   gameHistory: GameRound[]
@@ -54,7 +54,7 @@ export interface GameState {
   setQuests: (quests: Quest[]) => void
   setRelationships: (relationships: Relationship[]) => void
   setInventory: (inventory: Array<{ name: string; count: number; description?: string }>) => void
-  setCustomCards: (cards: Record<string, any>) => void
+  setCustomCards: (cards: Record<string, unknown>) => void
   
   // 游戏流程控制
   selectOption: (option: GameOption) => void
@@ -141,7 +141,7 @@ export const useGameStore = create<GameState>()(
           timestamp: Date.now(),
         }
         
-        set((state) => ({
+        set((state: GameState) => ({
           currentRound,
           scene: roundData.scene,
           narration: roundData.narration,
@@ -158,7 +158,7 @@ export const useGameStore = create<GameState>()(
       clearError: () => set({ error: null }),
       
       addToHistory: (round) => {
-        set((state) => ({
+        set((state: GameState) => ({
           gameHistory: [...state.gameHistory, round]
         }))
       },
@@ -178,7 +178,7 @@ export const useGameStore = create<GameState>()(
     }),
     {
       name: 'game-store',
-      partialize: (state) => ({
+      partialize: (state: GameState) => ({
         // 只持久化必要的数据，排除临时状态
         currentRound: state.currentRound,
         scene: state.scene,
@@ -229,3 +229,5 @@ export const gameSelectors = {
     selectedOption: state.selectedOption,
   })),
 }
+
+

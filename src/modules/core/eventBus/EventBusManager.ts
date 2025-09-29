@@ -1,10 +1,22 @@
-/**
+﻿/**
  * 事件总线管理器 - 单例模式
  * 确保整个应用只有一个全局事件总线实例
  */
 
 import { EventBus } from './EventBus'
-import type { EventBusAPI } from '../../../types/interfaces'
+import type { EventBusAPI, EventStats } from '../../../types/interfaces'
+
+// 扩展window对象类型
+declare global {
+  interface Window {
+    __eventBusDebug?: {
+      getEventBus: () => EventBusAPI
+      getDebugInfo: () => Record<string, unknown>
+      getStats: () => EventStats
+      clearAllSubscribers: () => void
+    }
+  }
+}
 
 /**
  * 事件总线管理器
@@ -94,11 +106,11 @@ export class EventBusManager {
     if (process.env.NODE_ENV === 'development') {
       // 在全局对象上暴露调试接口
       if (typeof window !== 'undefined') {
-        (window as any).__eventBusDebug = {
+        window.__eventBusDebug = {
+          getEventBus: () => this.eventBus,
+          getDebugInfo: () => this.eventBus.getDebugInfo(),
           getStats: () => this.eventBus.getStats(),
-          getDebugInfo: () => (this.eventBus as any).getDebugInfo(),
-          clear: () => this.eventBus.clear(),
-          instance: this.eventBus
+          clearAllSubscribers: () => this.eventBus.clear()
         }
       }
 
@@ -131,7 +143,7 @@ export class EventBusManager {
 
     // 清理全局调试对象
     if (typeof window !== 'undefined') {
-      delete (window as any).__eventBusDebug
+      delete window.__eventBusDebug
     }
   }
 
@@ -162,3 +174,8 @@ export const globalEventBus = EventBusManager.getInstance().getEventBus()
  * 导出事件总线管理器实例
  */
 export const eventBusManager = EventBusManager.getInstance()
+
+
+
+
+

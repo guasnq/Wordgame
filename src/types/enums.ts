@@ -145,6 +145,7 @@ export enum GameEvent {
   GAME_PAUSED = 'game:paused',
   GAME_RESUMED = 'game:resumed',
   GAME_ENDED = 'game:ended',
+  GAME_RESET = 'game:reset',
   
   // 回合事件
   ROUND_STARTED = 'round:started',
@@ -152,10 +153,25 @@ export enum GameEvent {
   
   // 状态事件
   STATE_CHANGED = 'state:changed',
+  STATE_BEFORE_UPDATE = 'state:before_update',
+  STATE_ERROR = 'state:error',
+  STATE_ROLLBACK = 'state:rollback',
   STATUS_UPDATED = 'status:updated',
   
+  // 快照事件
+  SNAPSHOT_CREATED = 'snapshot:created',
+  SNAPSHOT_RESTORED = 'snapshot:restored',
+  SNAPSHOT_DELETED = 'snapshot:deleted',
+  
+  // 用户交互事件
+  USER_INPUT_SUBMITTED = 'user:input_submitted',
+  USER_OPTION_SELECTED = 'user:option_selected',
+  
   // AI事件
+  AI_REQUEST_STARTED = 'ai:request_started',
   AI_REQUEST_SENT = 'ai:request_sent',
+  AI_REQUEST_COMPLETED = 'ai:request_completed',
+  AI_REQUEST_FAILED = 'ai:request_failed',
   AI_RESPONSE_RECEIVED = 'ai:response_received',
   AI_ERROR_OCCURRED = 'ai:error',
   
@@ -170,7 +186,11 @@ export enum GameEvent {
   // 存储事件
   DATA_SAVED = 'storage:saved',
   DATA_LOADED = 'storage:loaded',
-  DATA_EXPORTED = 'storage:exported'
+  DATA_EXPORTED = 'storage:exported',
+  
+  // 调试和错误事件
+  ERROR_OCCURRED = 'error:occurred',
+  DEBUG_MESSAGE = 'debug:message'
 }
 
 // ============== SiliconFlow特定服务 ==============
