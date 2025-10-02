@@ -213,11 +213,94 @@ graph TD
 - **可测试性**: 完整的单元测试覆盖，Mock友好的设计
 - **扩展性**: 支持自定义配置，灵活的状态订阅机制
 
-#### Task 6: 数据处理引擎
-- [ ] Prompt组装器 *📖 数据流动格式规范.md → 2.1节 完整的Prompt格式*
-- [ ] AI响应解析器 *📖 数据流动格式规范.md → 4.1节 AI响应解析处理*
-- [ ] 数据验证器 *📖 数据流动格式规范.md → 4.1节 校验和修复策略*
-- [ ] 格式转换工具 *📖 数据流动格式规范.md → 4.1节 轻修补策略*
+#### Task 6: 数据处理引擎 ✅
+- [x] Prompt组装器 *📖 数据流动格式规范.md → 2.1节 完整的Prompt格式*
+- [x] AI响应解析器 *📖 数据流动格式规范.md → 4.1节 AI响应解析处理*
+- [x] 数据验证器 *📖 数据流动格式规范.md → 4.1节 校验和修复策略*
+- [x] 格式转换工具 *📖 数据流动格式规范.md → 4.1节 轻修补策略*
+
+**已完成交付**:
+- [x] PromptBuilder - 完整的Prompt组装器 (src/modules/core/dataProcessor/promptBuilder/)
+  - 支持世界观、角色背景、历史摘要、当前状态、扩展信息的组装
+  - 自动生成符合三个AI服务商要求的输出格式规范
+  - Token数量估算功能
+  - 智能历史记录管理（最近N回合）
+- [x] ResponseParser - AI响应解析器 (src/modules/core/dataProcessor/responseParser/)
+  - 支持6种JSON提取策略：markdown包裹、代码块、大括号匹配等
+  - DeepSeek推理模式特殊处理（移除reasoning标签）
+  - Gemini安全过滤响应处理
+  - SiliconFlow批处理响应处理
+  - 自动修复常见JSON错误（末尾逗号、单引号、注释等）
+  - OpenAI和Gemini格式兼容性支持
+- [x] DataValidator - 数据验证器 (src/modules/core/dataProcessor/validator/)
+  - 完整的字段验证：scene、narration、options、status、custom
+  - 严格模式和宽松模式支持
+  - 详细的错误和警告信息
+  - 快速验证功能（仅检查关键字段）
+  - 旁白句子数量检查（1-3句限制）
+  - 选项格式和ID唯一性验证
+  - 状态字段类型检查（进度条、数值）
+- [x] DataFormatter - 格式转换工具 (src/modules/core/dataProcessor/formatter/)
+  - 智能字段名映射（event→narration等16种常见映射）
+  - 自动修复选项格式（字符串→对象、ID修复）
+  - 状态格式修复（数字→进度条、类型转换）
+  - 默认值填充机制
+  - 智能修复功能（综合应用所有修复策略）
+- [x] DataProcessor - 统一数据处理接口 (src/modules/core/dataProcessor/DataProcessor.ts)
+  - 完整的五阶段处理流程：Prompt构建→解析→格式化→验证→完成
+  - 独立功能调用支持（仅构建、仅解析、仅验证、仅格式化）
+  - 详细的处理元数据（耗时、应用修复、警告信息）
+  - 严格模式和宽松模式
+  - 错误恢复和降级处理
+- [x] TypeScript类型检查通过
+- [x] ESLint代码规范检查通过
+- [x] 完整的模块导出系统
+
+**核心特性**:
+- **四步错误处理流程**: 约束（Prompt要求）→ 校验（格式验证）→ 兜底（自动修复）→ 重试（错误恢复）
+- **多服务商适配**: 针对DeepSeek、Gemini、SiliconFlow的特殊格式处理
+- **智能容错**: 16种字段映射、6种JSON提取策略、多种自动修复机制
+- **灵活配置**: 支持严格/宽松验证、可选的自动修复、自定义历史记录数量
+- **性能优化**: Token估算、快速验证、最小化验证模式
+- **完整元数据**: 每个处理阶段提供详细的统计和诊断信息
+
+**🔧 已修复的关键问题（2025年审核反馈）**:
+
+**第一轮修复（枚举值大小写问题）**:
+- [x] **ResponseParser枚举修复** (第175、182、201行)
+  - 修复AIProvider枚举比较（'DEEPSEEK' → AIProvider.DEEPSEEK等）
+  - 修复前：DeepSeek推理模式、Gemini安全过滤、SiliconFlow批处理永远不会触发
+  - 修复后：所有服务商特殊处理逻辑正常工作
+- [x] **DataFormatter枚举修复** (第258、292、398、404、418、420行)
+  - 修复FieldType和DataType枚举比较（'PROGRESS' → FieldType.PROGRESS等）
+  - 修复前：状态格式修复（进度条、数值转换）永远不会触发
+  - 修复后：状态格式修复、扩展数据处理正常工作
+- [x] **DataValidator枚举修复** (第382、412、478、485行)
+  - 修复FieldType和DataType枚举比较
+  - 修复前：字段类型验证永远不会触发
+  - 修复后：进度条验证、数值验证、扩展数据验证正常工作
+- [x] **PromptBuilder差异化增强**
+  - 添加provider参数支持不同AI服务商
+  - 新增buildProviderSpecificNotes()方法
+  - DeepSeek特别说明：推理模式、reasoning标签处理
+  - Gemini特别说明：安全过滤避免、多模态支持说明
+  - SiliconFlow特别说明：批处理模式、简洁输出要求
+
+**第二轮修复（provider参数传递和示例生成）**:
+- [x] **DataProcessor参数传递修复** (第221、231行)
+  - 问题：buildPrompt()调用PromptBuilder时没有传递provider参数
+  - 影响：第一轮添加的服务商差异化功能完全不会生效
+  - 修复：在Pick类型中添加'provider'，在调用时传递options.provider
+  - 修复后：服务商差异化Prompt真正参与实际流程
+- [x] **PromptBuilder示例生成修复** (第339、341、358、360行)
+  - 问题：buildStatusExample和buildExtensionExample仍使用大写字面量
+  - 影响：进度条示例错误生成为字符串，扩展字段示例永远是"mixed data"
+  - 修复：使用FieldType.PROGRESS、FieldType.NUMBER、DataType.ARRAY、DataType.OBJECT枚举值
+  - 修复后：状态和扩展字段示例正确生成
+
+**代码质量验证**:
+- [x] TypeScript类型检查通过（无错误）
+- [x] ESLint代码规范检查通过（无错误、无警告）
 
 ### 阶段三：AI服务集成模块（AI Service）
 

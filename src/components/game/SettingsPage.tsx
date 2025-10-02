@@ -89,92 +89,101 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
               <CardTitle>AI服务配置</CardTitle>
               <CardDescription>配置您的AI服务提供商和相关参数</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="provider">服务商选择</Label>
-                <Select value={apiProvider} onValueChange={setApiProvider}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="deepseek">DeepSeek API (高性价比)</SelectItem>
-                    <SelectItem value="gemini">Google Gemini API (多模态)</SelectItem>
-                    <SelectItem value="siliconflow">SiliconFlow API (多模型选择)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="apikey">API密钥</Label>
-                <Input
-                  id="apikey"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="请输入您的API密钥"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="model">模型名称</Label>
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="deepseek-chat">deepseek-chat</SelectItem>
-                    <SelectItem value="deepseek-coder">deepseek-coder</SelectItem>
-                    <SelectItem value="gemini-pro">gemini-pro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>温度值: {temperature[0]}</Label>
-                <Slider
-                  value={temperature}
-                  onValueChange={setTemperature}
-                  max={2}
-                  min={0}
-                  step={0.1}
-                  className="w-full"
-                />
-                <div className="text-xs text-muted-foreground">控制AI回复的随机性 (0.0-2.0)</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSaveConfig()
+                }}
+                className="space-y-6"
+              >
                 <div className="space-y-2">
-                  <Label htmlFor="maxlength">最大长度</Label>
+                  <Label htmlFor="provider">服务商选择</Label>
+                  <Select value={apiProvider} onValueChange={setApiProvider}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="deepseek">DeepSeek API (高性价比)</SelectItem>
+                      <SelectItem value="gemini">Google Gemini API (多模态)</SelectItem>
+                      <SelectItem value="siliconflow">SiliconFlow API (多模型选择)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="apikey">API密钥</Label>
                   <Input
-                    id="maxlength"
-                    value={maxLength}
-                    onChange={(e) => setMaxLength(e.target.value)}
-                    placeholder="2000"
+                    id="apikey"
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="请输入您的API密钥"
+                    autoComplete="off"
                   />
-                  <div className="text-xs text-muted-foreground">字符</div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="timeout">超时设置</Label>
-                  <Input id="timeout" value={timeout} onChange={(e) => setTimeout(e.target.value)} placeholder="30" />
-                  <div className="text-xs text-muted-foreground">秒</div>
+                  <Label htmlFor="model">模型名称</Label>
+                  <Select value={model} onValueChange={setModel}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="deepseek-chat">deepseek-chat</SelectItem>
+                      <SelectItem value="deepseek-coder">deepseek-coder</SelectItem>
+                      <SelectItem value="gemini-pro">gemini-pro</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                <Button onClick={handleTestConnection} disabled={connectionStatus === "testing"}>
-                  {connectionStatus === "testing" ? "测试中..." : "测试连接"}
-                </Button>
-                <Button onClick={handleSaveConfig}>保存配置</Button>
-              </div>
-
-              {connectionStatus === "success" && (
-                <div className="flex items-center gap-2 text-sm text-green-600">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  连接正常 (延迟: 120ms)
+                <div className="space-y-2">
+                  <Label>温度值: {temperature[0]}</Label>
+                  <Slider
+                    value={temperature}
+                    onValueChange={setTemperature}
+                    max={2}
+                    min={0}
+                    step={0.1}
+                    className="w-full"
+                  />
+                  <div className="text-xs text-muted-foreground">控制AI回复的随机性 (0.0-2.0)</div>
                 </div>
-              )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="maxlength">最大长度</Label>
+                    <Input
+                      id="maxlength"
+                      value={maxLength}
+                      onChange={(e) => setMaxLength(e.target.value)}
+                      placeholder="2000"
+                    />
+                    <div className="text-xs text-muted-foreground">字符</div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="timeout">超时设置</Label>
+                    <Input id="timeout" value={timeout} onChange={(e) => setTimeout(e.target.value)} placeholder="30" />
+                    <div className="text-xs text-muted-foreground">秒</div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="button" onClick={handleTestConnection} disabled={connectionStatus === "testing"}>
+                    {connectionStatus === "testing" ? "测试中..." : "测试连接"}
+                  </Button>
+                  <Button type="submit">保存配置</Button>
+                </div>
+
+                {connectionStatus === "success" && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    连接正常 (延迟: 120ms)
+                  </div>
+                )}
+              </form>
             </CardContent>
           </Card>
 
