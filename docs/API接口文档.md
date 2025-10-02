@@ -1,4 +1,4 @@
-# AI文字游戏渲染器 - API接口文档
+﻿# AI文字游戏渲染器 - API接口文档
 
 ## 目录
 - [1. API概览和架构](#1-api概览和架构)
@@ -74,9 +74,36 @@ interface AIServiceAdapter {
   // 状态管理
   getConnectionStatus(): ConnectionStatus;
   getUsageStats(): UsageStats;
-  
+
+  // 遥测信息
+  getTelemetry(): AdapterTelemetrySnapshot;
+
   // 错误处理
   handleError(error: Error): ProcessedError;
+
+`AdapterTelemetrySnapshot` 结构说明：
+```typescript
+interface AdapterTelemetrySnapshot {
+  usage: UsageStats;
+  connection: {
+    status: ConnectionStatus;
+    metrics: ConnectionMetrics;
+    lastTestResult?: ConnectionTestResult;
+  };
+}
+
+interface ConnectionMetrics {
+  status: ConnectionStatus;
+  totalAttempts: number;
+  successfulConnections: number;
+  consecutiveFailures: number;
+  lastConnectedAt?: number;
+  lastDisconnectedAt?: number;
+  lastLatency?: number;
+  averageLatency?: number;
+  lastError?: unknown;
+}
+```
 }
 ```
 

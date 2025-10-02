@@ -23,7 +23,10 @@ export interface AIServiceAdapter {
   // 状态管理
   getConnectionStatus(): ConnectionStatus
   getUsageStats(): UsageStats
-  
+
+  // 遥测信息
+  getTelemetry(): AdapterTelemetrySnapshot
+
   // 错误处理
   handleError(error: Error): ProcessedError
 }
@@ -218,6 +221,30 @@ export interface UsageStats {
   errorRate: number
 }
 
+// ============== 适配器遥测快照 ==============
+export interface ConnectionMetrics {
+  status: ConnectionStatus
+  totalAttempts: number
+  successfulConnections: number
+  consecutiveFailures: number
+  lastConnectedAt?: number
+  lastDisconnectedAt?: number
+  lastLatency?: number
+  averageLatency?: number
+  lastError?: unknown
+}
+
+export interface AdapterConnectionTelemetry {
+  status: ConnectionStatus
+  metrics: ConnectionMetrics
+  lastTestResult?: ConnectionTestResult
+}
+
+export interface AdapterTelemetrySnapshot {
+  usage: UsageStats
+  connection: AdapterConnectionTelemetry
+}
+
 // ============== 处理后的错误 ==============
 export interface ProcessedError extends BaseError {
   provider: AIProvider
@@ -315,4 +342,6 @@ export interface AIUsage {
   completion_tokens: number
   total_tokens: number
 }
+
+
 
