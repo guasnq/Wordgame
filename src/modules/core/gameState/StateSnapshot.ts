@@ -1,5 +1,4 @@
-﻿// @ts-nocheck
-/**
+﻿/**
  * 状态快照工具
  * 提供游戏状态的快照、比较、回滚等功能
  * 基于API接口文档3.1.2节StateManager API的要求
@@ -404,3 +403,4 @@ declare module '@/types/game' {
     metadata?: SnapshotMetadata
   }
 }
+

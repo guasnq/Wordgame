@@ -1,5 +1,4 @@
-﻿// @ts-nocheck
-/**
+﻿/**
  * 状态管理器
  * 实现API接口文档3.1.2节StateManagerAPI的所有方法
  * 包装GameStateStore并提供标准化接口
@@ -538,6 +537,7 @@ export const resetStateManager = (): void => {
 export const useStateManager = () => {
   return getStateManager()
 }
+
 
 
 

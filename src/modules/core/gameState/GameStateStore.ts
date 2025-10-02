@@ -1,5 +1,4 @@
-﻿// @ts-nocheck
-/**
+﻿/**
  * 重构后的游戏状态Store
  * 基于API接口文档的完整GameState接口
  * 集成CircularBuffer和状态快照功能

@@ -63,6 +63,13 @@ export interface LevelValue {
   maxLevel?: number
 }
 
+export type PrimitiveValue = string | number | boolean | null
+
+export type CardValue =
+  | PrimitiveValue
+  | PrimitiveValue[]
+  | Record<string, PrimitiveValue | PrimitiveValue[]>
+
 // ============== 状态字段定义 ==============
 export interface StatusField {
   id: string
@@ -75,11 +82,10 @@ export interface StatusField {
   required: boolean             // 是否必需
 }
 
-export interface FieldConfig {
-  [key: string]: any
-}
+export type FieldConfig = Record<string, unknown>
 
-export interface ProgressFieldConfig extends FieldConfig {
+
+export interface ProgressFieldConfig extends Record<string, unknown> {
   min: number
   max: number
   initial: number
@@ -87,7 +93,7 @@ export interface ProgressFieldConfig extends FieldConfig {
   showPercentage: boolean
 }
 
-export interface NumberFieldConfig extends FieldConfig {
+export interface NumberFieldConfig extends Record<string, unknown> {
   initial: number
   min?: number
   max?: number
@@ -96,8 +102,8 @@ export interface NumberFieldConfig extends FieldConfig {
 
 // ============== 自定义扩展数据 ==============
 export interface CustomData {
-  [cardName: string]: any       // 已配置的扩展卡片数据
-  _extra?: Record<string, any>  // 未配置的额外数据
+  [cardName: string]: CardValue | Record<string, CardValue> | undefined       // 已配置的扩展卡片数据
+  _extra?: Record<string, CardValue>  // 未配置的额外数据
 }
 
 // ============== 解析后的游戏数据 ==============
@@ -128,7 +134,7 @@ export interface GameState {
   totalRounds: number
   
   // 玩家状态
-  playerStatus: Record<string, any>  // 动态状态字段
+  playerStatus: Record<string, StatusFieldValue>  // 动态状态字段
   
   // 游戏历史
   history: GameRound[]
@@ -143,7 +149,7 @@ export interface GameState {
   }
   
   // 扩展数据
-  customData: Record<string, any>
+  customData: Record<string, CardValue>
   
   // 元数据
   metadata: {
@@ -162,21 +168,21 @@ export interface GameStatistics {
   aiRequestCount: number        // AI请求次数
   totalTokensUsed: number       // 总token使用量
   achievementsUnlocked: string[] // 解锁成就
-  customStats: Record<string, any> // 自定义统计
+  customStats: Record<string, CardValue> // 自定义统计
 }
 
 // ============== 处理结果 ==============
 export interface ProcessResult {
   success: boolean
   data?: ParsedGameData
-  error?: any
+  error?: unknown
   timestamp: number
 }
 
 // ============== 状态更新 ==============
 export interface StateUpdate {
   path: string
-  value: any
+  value: unknown
   operation: 'set' | 'merge' | 'delete'
   timestamp?: number
 }
@@ -197,7 +203,7 @@ export interface StatePatch {
 }
 
 // ============== 状态变化回调 ==============
-export type StateChangeCallback = (newState: any, oldState: any, path: string) => void
+export type StateChangeCallback = (newState: GameState, oldState: GameState, path: string) => void
 
 // ============== 取消订阅函数 ==============
 export type UnsubscribeFunction = () => void
