@@ -316,22 +316,53 @@ graph TD
 **预估工时**: 5-7天  
 **风险等级**: 中等 (推理模式和KV缓存难点)
 
-##### 8.1 DeepSeek连接配置 (1天)
+##### 8.1 DeepSeek连接配置 (1天) ✅ **已完成并修复**
 - [x] 创建DeepSeek配置接口 `DeepSeekConfig` *📖 API接口文档.md → 4.2.2节 AI配置数据*
 - [x] 实现API密钥验证逻辑 *📖 API接口文档.md → 2.2.1节 DeepSeek API集成*
 - [x] 添加连接测试功能 *📖 需求文档详细版.md → 2.3.3节 连接测试*
 - [x] 支持推理模式开关配置
+- [x] **UI集成完成** - 在SettingsPage中集成DeepSeekConnectionManager
+- [x] **修复fetch绑定问题** - 解决浏览器环境中的"Illegal invocation"错误
 - **验收标准**: 
-  - [x] 配置接口符合统一规范
-  - [x] 支持无效密钥检测
-  - [x] 连接测试能返回明确状态
-  - [x] 推理模式配置生效
+  - [x] 配置接口符合统一规范 ✅
+  - [x] 支持无效密钥检测 ✅
+  - [x] 连接测试能返回明确状态 ✅（真实API调用，显示响应时间和错误信息）
+  - [x] 推理模式配置生效 ✅（UI中可配置，影响实际API调用）
 
-##### 8.2 请求构建器 (1天)  
-- [ ] 实现 `buildDeepSeekRequest()` 方法 *📖 API接口文档.md → 2.2.1节 DeepSeek API集成*
-- [ ] 支持deepseek-chat和deepseek-reasoner模型切换 *📖 需求文档详细版.md → 2.3.1节 支持的AI服务*
-- [ ] 处理temperature、max_tokens等参数 *📖 API接口文档.md → 4.2.2节 AIParameters*
-- [ ] 实现KV缓存优化配置
+**🔧 修复记录（2025-10-04）**:
+- **问题**: 原SettingsPage使用setTimeout模拟连接测试，DeepSeekConnectionManager从未被UI使用
+- **修复内容**:
+  1. 在SettingsPage中导入DeepSeekConnectionManager和相关类型
+  2. 添加DeepSeek专属配置状态（enableReasoning、enableCache、cacheStrategy、compatibilityMode）
+  3. 替换假的handleTestConnection为真实的API调用
+  4. 添加详细的测试结果显示（响应时间、API版本、模型可用性、特性列表）
+  5. 添加完整的错误处理和显示机制
+  6. 在UI中添加DeepSeek专属配置控件（推理模式开关、KV缓存开关等）
+  7. 修复DeepSeekConnectionManager的fetch绑定问题（添加.bind(globalThis)）
+  8. 修复代码中的any类型linter错误
+  9. **修复模型列表混乱问题** - 使用Context7查找各厂商最新模型，移除错误的跨厂商模型
+  10. **添加兼容模式详细说明** - 解释OpenAI/Anthropic/Native三种格式的用途
+  11. **添加自动模型切换** - 切换服务商时自动选择对应的默认模型
+- **验证方式**: 使用Playwright浏览器自动化工具验证
+- **截图证明**: 
+  - `.playwright-mcp/task-8.1-completed-verification.png` - 初始UI集成验证
+  - `.playwright-mcp/gemini-complete-models-list.png` - Gemini完整模型列表（8个）
+  - `.playwright-mcp/siliconflow-models-verification.png` - SiliconFlow模型列表
+  - `.playwright-mcp/deepseek-compatibility-mode-explanation.png` - 兼容模式说明
+  - `.playwright-mcp/api-key-validation-error.png` - API密钥验证和错误处理
+  - `.playwright-mcp/task-8.1-complete-final.png` - 最终完整验证
+- **实际可用性**: ✅ 用户现在可以真正测试DeepSeek连接，查看真实的API响应
+
+**📊 模型列表（通过Context7验证）**:
+- **DeepSeek**: deepseek-chat、deepseek-reasoner（共2个）
+- **Gemini**: gemini-2.5-pro、gemini-2.5-flash、gemini-2.0-flash-001、gemini-2.0-flash、gemini-1.5-pro、gemini-1.5-flash、gemini-pro、gemini-pro-vision（共8个）
+- **SiliconFlow**: Qwen、DeepSeek-V3、GLM、Llama系列（暂列5个常用）
+
+##### 8.2 请求构建器 (1天)
+- [x] 实现 `buildDeepSeekRequest()` 方法 *📖 API接口文档.md → 2.2.1节 DeepSeek API集成*
+- [x] 支持deepseek-chat和deepseek-reasoner模型切换 *📖 需求文档详细版.md → 2.3.1节 支持的AI服务*
+- [x] 处理temperature、max_tokens等参数 *📖 API接口文档.md → 4.2.2节 AIParameters*
+- [x] 实现KV缓存优化配置
 - **接口契约**:
 ```typescript
 interface DeepSeekRequestBuilder {
@@ -340,10 +371,10 @@ interface DeepSeekRequestBuilder {
 }
 ```
 - **验收标准**:
-  - [ ] 请求格式符合DeepSeek API规范
-  - [ ] 参数验证和边界处理
-  - [ ] KV缓存配置正确传递
-  - [ ] 单元测试覆盖率>90%
+  - [x] 请求格式符合DeepSeek API规范
+  - [x] 参数验证和边界处理
+  - [x] KV缓存配置正确传递
+  - [x] 单元测试覆盖率>90%
 
 ##### 8.3 响应解析器 (2天)
 - [ ] 实现 `parseDeepSeekResponse()` 方法 *📖 API接口文档.md → 2.2.1节 DeepSeek API集成*  
@@ -653,4 +684,5 @@ interface DeepSeekRequestBuilder {
 ---
 
 *此文档将随着开发进展持续更新*
+
 

@@ -25,7 +25,8 @@ export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekCon
       throw new Error('当前运行环境缺少 fetch 实现，无法连接DeepSeek API')
     }
 
-    this.fetchImpl = runtimeFetch
+    // 绑定fetch的this上下文，避免"Illegal invocation"错误
+    this.fetchImpl = runtimeFetch.bind(globalThis)
     this.testEndpoint = testEndpoint ?? DEFAULT_TEST_ENDPOINT
   }
 
@@ -123,18 +124,22 @@ export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekCon
       throw new Error(`DeepSeek服务返回异常：${response.status} ${response.statusText}`.trim())
     }
 
-    let payload: any = {}
+    let payload: Record<string, unknown> = {}
     try {
-      payload = await response.json()
+      payload = await response.json() as Record<string, unknown>
     } catch {
       payload = {}
     }
 
     const list = Array.isArray(payload?.data) ? payload.data : []
     const models = list
-      .map((item: any) => item?.id)
+      .map((item: unknown) => (item as Record<string, unknown>)?.id)
       .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
-    const apiVersion = payload?.meta?.version ?? payload?.api_version ?? undefined
+
+    const metaVersion = payload?.meta ? (payload.meta as Record<string, unknown>)?.version : undefined
+    const directVersion = payload?.api_version
+    const apiVersion = typeof metaVersion === 'string' ? metaVersion :
+      typeof directVersion === 'string' ? directVersion : undefined
 
     return { models, apiVersion }
   }

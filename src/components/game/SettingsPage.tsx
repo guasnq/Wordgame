@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +9,8 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import type { PageType } from "@/types/page"
+import { DeepSeekConnectionManager } from "@/modules/ai/connection/DeepSeekConnectionManager"
+import type { DeepSeekConfig, ConnectionTestResult } from "@/types/ai"
 
 interface SettingsPageProps {
   onNavigate: (page: PageType) => void
@@ -27,18 +29,66 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
   const [compressHistory, setCompressHistory] = useState(true)
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "testing" | "success" | "error">("idle")
 
+  // DeepSeek特定配置
+  const [enableReasoning, setEnableReasoning] = useState(true)
+  const [enableCache, setEnableCache] = useState(true)
+  const [cacheStrategy, setCacheStrategy] = useState<'auto' | 'manual'>('auto')
+  const [compatibilityMode, setCompatibilityMode] = useState<'openai' | 'anthropic' | 'native'>('openai')
+
+  // 测试结果
+  const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string>("")
+
+  // 当切换服务商时，自动切换到对应的默认模型
+  useEffect(() => {
+    if (apiProvider === "deepseek") {
+      setModel("deepseek-chat")
+    } else if (apiProvider === "gemini") {
+      setModel("gemini-2.5-pro")  // 使用最新的Pro模型作为默认
+    } else if (apiProvider === "siliconflow") {
+      setModel("Qwen/Qwen2.5-72B-Instruct")
+    }
+  }, [apiProvider])
+
   const handleTestConnection = async () => {
     setConnectionStatus("testing")
-    // Simulate API test
-    await new Promise(resolve => {
-      window.setTimeout(() => {
-        resolve(undefined)
-      }, 2000)
-    })
-    setConnectionStatus("success")
-    window.setTimeout(() => {
-      setConnectionStatus("idle")
-    }, 3000)
+    setErrorMessage("")
+    setTestResult(null)
+
+    try {
+      const manager = new DeepSeekConnectionManager()
+
+      const config: DeepSeekConfig = {
+        apiUrl: 'https://api.deepseek.com',
+        apiKey: apiKey,
+        model: model,
+        timeout: parseInt(timeout) * 1000,
+        maxRetries: 2,
+        retryDelay: 1000,
+        supportReasoning: enableReasoning,
+        enableCache: enableCache,
+        cacheStrategy: cacheStrategy,
+        compatibilityMode: compatibilityMode,
+        reasoningModeEnabled: enableReasoning
+      }
+
+      const result = await manager.testConnection(config)
+      setTestResult(result)
+
+      if (result.success) {
+        setConnectionStatus("success")
+        window.setTimeout(() => {
+          setConnectionStatus("idle")
+        }, 5000)
+      } else {
+        setConnectionStatus("error")
+        setErrorMessage(result.error || "连接测试失败")
+      }
+    } catch (error) {
+      setConnectionStatus("error")
+      setErrorMessage(error instanceof Error ? error.message : "未知错误")
+      console.error("连接测试错误:", error)
+    }
   }
 
   const handleSaveConfig = () => {
@@ -130,11 +180,40 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="deepseek-chat">deepseek-chat</SelectItem>
-                      <SelectItem value="deepseek-coder">deepseek-coder</SelectItem>
-                      <SelectItem value="gemini-pro">gemini-pro</SelectItem>
+                      {apiProvider === "deepseek" && (
+                        <>
+                          <SelectItem value="deepseek-chat">deepseek-chat (V3.1 - 标准模式)</SelectItem>
+                          <SelectItem value="deepseek-reasoner">deepseek-reasoner (V3.1 - 推理模式)</SelectItem>
+                        </>
+                      )}
+                      {apiProvider === "gemini" && (
+                        <>
+                          <SelectItem value="gemini-2.5-pro">gemini-2.5-pro (最新Pro)</SelectItem>
+                          <SelectItem value="gemini-2.5-flash">gemini-2.5-flash (最新Flash)</SelectItem>
+                          <SelectItem value="gemini-2.0-flash-001">gemini-2.0-flash-001</SelectItem>
+                          <SelectItem value="gemini-2.0-flash">gemini-2.0-flash</SelectItem>
+                          <SelectItem value="gemini-1.5-pro">gemini-1.5-pro</SelectItem>
+                          <SelectItem value="gemini-1.5-flash">gemini-1.5-flash</SelectItem>
+                          <SelectItem value="gemini-pro">gemini-pro (经典)</SelectItem>
+                          <SelectItem value="gemini-pro-vision">gemini-pro-vision (视觉)</SelectItem>
+                        </>
+                      )}
+                      {apiProvider === "siliconflow" && (
+                        <>
+                          <SelectItem value="Qwen/Qwen2.5-72B-Instruct">Qwen2.5-72B-Instruct</SelectItem>
+                          <SelectItem value="Qwen/Qwen2.5-32B-Instruct">Qwen2.5-32B-Instruct</SelectItem>
+                          <SelectItem value="deepseek-ai/DeepSeek-V3">DeepSeek-V3</SelectItem>
+                          <SelectItem value="THUDM/glm-4-9b-chat">GLM-4-9B-Chat</SelectItem>
+                          <SelectItem value="meta-llama/Meta-Llama-3.1-70B-Instruct">Llama-3.1-70B</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
+                  <div className="text-xs text-muted-foreground">
+                    {apiProvider === "deepseek" && "DeepSeek V3.1 - 128K上下文"}
+                    {apiProvider === "gemini" && "Gemini 2.5/2.0/1.5代 - 支持多模态 (Pro性能更强，Flash速度更快)"}
+                    {apiProvider === "siliconflow" && "多模型聚合平台"}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -168,6 +247,74 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                   </div>
                 </div>
 
+                {/* DeepSeek特定配置 */}
+                {apiProvider === "deepseek" && (
+                  <>
+                    <Separator />
+                    <div className="space-y-4">
+                      <Label className="text-base">DeepSeek 专属配置</Label>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label htmlFor="enableReasoning">启用推理模式</Label>
+                          <div className="text-xs text-muted-foreground">使用deepseek-reasoner模型提供思考过程</div>
+                        </div>
+                        <Switch
+                          id="enableReasoning"
+                          checked={enableReasoning}
+                          onCheckedChange={setEnableReasoning}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label htmlFor="enableCache">启用KV缓存</Label>
+                          <div className="text-xs text-muted-foreground">缓存命中时费用降低90%</div>
+                        </div>
+                        <Switch
+                          id="enableCache"
+                          checked={enableCache}
+                          onCheckedChange={setEnableCache}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cacheStrategy">缓存策略</Label>
+                        <Select value={cacheStrategy} onValueChange={(v) => setCacheStrategy(v as 'auto' | 'manual')}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">自动管理</SelectItem>
+                            <SelectItem value="manual">手动控制</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="compatibilityMode">兼容模式</Label>
+                        <Select value={compatibilityMode} onValueChange={(v) => setCompatibilityMode(v as 'openai' | 'anthropic' | 'native')}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="openai">OpenAI格式</SelectItem>
+                            <SelectItem value="anthropic">Anthropic格式</SelectItem>
+                            <SelectItem value="native">原生格式</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div className="font-medium">💡 兼容模式说明：</div>
+                          <div>• <span className="font-medium">OpenAI格式</span>：使用OpenAI的API格式（推荐，兼容性最好）</div>
+                          <div>• <span className="font-medium">Anthropic格式</span>：使用Claude的API格式</div>
+                          <div>• <span className="font-medium">原生格式</span>：使用DeepSeek原生API格式</div>
+                          <div className="mt-1 text-muted-foreground">DeepSeek API兼容多种格式，方便从其他平台迁移</div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex gap-2">
                   <Button type="button" onClick={handleTestConnection} disabled={connectionStatus === "testing"}>
                     {connectionStatus === "testing" ? "测试中..." : "测试连接"}
@@ -175,12 +322,44 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                   <Button type="submit">保存配置</Button>
                 </div>
 
-                {connectionStatus === "success" && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    连接正常 (延迟: 120ms)
+                {/* 测试成功结果 */}
+                {connectionStatus === "success" && testResult && (
+                  <div className="p-4 border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300 font-medium">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      连接测试成功
+                    </div>
+                    <div className="text-sm text-green-600 dark:text-green-400 space-y-1">
+                      <div>• 响应时间: {testResult.responseTime}ms</div>
+                      {testResult.details?.apiVersion && (
+                        <div>• API版本: {testResult.details.apiVersion}</div>
+                      )}
+                      {testResult.details?.modelAvailable !== undefined && (
+                        <div>• 模型可用: {testResult.details.modelAvailable ? "是" : "否"}</div>
+                      )}
+                      {testResult.details?.features && testResult.details.features.length > 0 && (
+                        <div>• 可用特性: {testResult.details.features.join(", ")}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 测试错误结果 */}
+                {connectionStatus === "error" && (
+                  <div className="p-4 border border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300 font-medium">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      连接测试失败
+                    </div>
+                    {errorMessage && (
+                      <div className="text-sm text-red-600 dark:text-red-400">
+                        错误信息: {errorMessage}
+                      </div>
+                    )}
                   </div>
                 )}
               </form>
@@ -201,9 +380,8 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     <button
                       key={themeOption}
                       onClick={() => setTheme(themeOption)}
-                      className={`p-4 border rounded-lg text-center transition-colors ${
-                        theme === themeOption ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-                      }`}
+                      className={`p-4 border rounded-lg text-center transition-colors ${theme === themeOption ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                        }`}
                     >
                       <div className="w-full h-8 bg-gradient-to-r from-primary/20 to-primary/40 rounded mb-2"></div>
                       <div className="text-sm">

@@ -275,8 +275,17 @@ export interface DeepSeekRequestBody {
   max_tokens: number
   stream: boolean
   reasoning?: boolean
+  stop?: string[]
+  top_p?: number
+  frequency_penalty?: number
+  presence_penalty?: number
+  repetition_penalty?: number
+  compatibility_mode?: 'openai' | 'anthropic' | 'native'
+  kv_cache?: {
+    enabled: boolean
+    strategy: 'auto' | 'manual'
+  }
 }
-
 // ============== Gemini请求体 ==============
 export interface GeminiRequestBody {
   contents: GeminiContent[]
