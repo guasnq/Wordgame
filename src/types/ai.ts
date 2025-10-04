@@ -106,6 +106,7 @@ export interface DeepSeekConfig extends ConnectionConfig {
   enableCache: boolean
   cacheStrategy: 'auto' | 'manual'
   compatibilityMode: 'openai' | 'anthropic' | 'native'
+  reasoningModeEnabled?: boolean
 }
 
 // ============== Gemini特定配置 ==============
@@ -342,6 +343,7 @@ export interface AIUsage {
   completion_tokens: number
   total_tokens: number
 }
+
 
 
 

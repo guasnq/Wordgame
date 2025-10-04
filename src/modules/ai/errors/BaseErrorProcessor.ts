@@ -144,7 +144,7 @@ export abstract class BaseErrorProcessor {
     }
 
     return {
-      ...metadata.context,
+      ...(metadata.context ?? {}),
       function: metadata.stage,
       requestId: metadata.requestId
     }
@@ -300,3 +300,4 @@ export abstract class BaseErrorProcessor {
    */
   protected abstract getProviderErrorCode(error: unknown, metadata: ErrorMetadata): ErrorCode | null
 }
+

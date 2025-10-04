@@ -10,10 +10,10 @@ export interface ConnectionManagerOptions {
  * 连接管理基类
  * 负责跟踪连接状态、统计信息以及基础的连接生命周期
  */
-export abstract class BaseConnectionManager {
+export abstract class BaseConnectionManager<TConfig extends ConnectionConfig = ConnectionConfig> {
   private readonly statusListeners = new Set<(status: ConnectionStatus) => void>()
   protected status: ConnectionStatus = ConnectionStatus.DISCONNECTED
-  protected currentConfig?: ConnectionConfig
+  protected currentConfig?: TConfig
   protected metrics: ConnectionMetrics = {
     status: ConnectionStatus.DISCONNECTED,
     totalAttempts: 0,
@@ -28,7 +28,7 @@ export abstract class BaseConnectionManager {
     }
   }
 
-  async connect(config: ConnectionConfig): Promise<void> {
+  async connect(config: TConfig): Promise<void> {
     this.validateConfig(config)
     this.currentConfig = config
     this.metrics.totalAttempts += 1
@@ -70,7 +70,7 @@ export abstract class BaseConnectionManager {
     }
   }
 
-  async testConnection(config?: ConnectionConfig): Promise<ConnectionTestResult> {
+  async testConnection(config?: TConfig): Promise<ConnectionTestResult> {
     const targetConfig = config ?? this.currentConfig
     if (!targetConfig) {
       throw new Error('测试连接需要提供连接配置')
@@ -108,7 +108,7 @@ export abstract class BaseConnectionManager {
     return this.lastError
   }
 
-  getConfig(): ConnectionConfig | undefined {
+  getConfig(): TConfig | undefined {
     return this.currentConfig
   }
 
@@ -185,7 +185,7 @@ export abstract class BaseConnectionManager {
     }
   }
 
-  protected validateConfig(config: ConnectionConfig): void {
+  protected validateConfig(config: TConfig): void {
     if (!config.apiUrl) {
       throw new Error('AI服务连接需要提供apiUrl')
     }
@@ -198,7 +198,7 @@ export abstract class BaseConnectionManager {
   /**
    * 由具体适配器实现的实际连接过程，例如握手、凭证验证或健康检查。
    */
-  protected abstract establishConnection(config: ConnectionConfig): Promise<void>
+  protected abstract establishConnection(config: TConfig): Promise<void>
   /**
    * 清理与服务端的连接资源，例如关闭会话或释放连接池。
    */
@@ -206,5 +206,6 @@ export abstract class BaseConnectionManager {
   /**
    * 执行连接测试并返回统一的测试结果（如响应耗时、功能特性检测）。
    */
-  protected abstract performConnectionTest(config: ConnectionConfig): Promise<ConnectionTestResult>
+  protected abstract performConnectionTest(config: TConfig): Promise<ConnectionTestResult>
 }
+
