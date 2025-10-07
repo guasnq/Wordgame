@@ -1,6 +1,5 @@
 import type {
   AIConfig,
-  AIRequest,
   AIResponse,
   ConnectionConfig,
   ConnectionTestResult,

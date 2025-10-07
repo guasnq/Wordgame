@@ -33,7 +33,8 @@ const RETRYABLE_ERROR_CODES = new Set<ErrorCode>([
   ErrorCode.TOO_MANY_REQUESTS,
   ErrorCode.BANDWIDTH_EXCEEDED,
   ErrorCode.SERVICE_UNAVAILABLE,
-  ErrorCode.RATE_LIMIT_EXCEEDED
+  ErrorCode.RATE_LIMIT_EXCEEDED,
+  ErrorCode.DEEPSEEK_RATE_LIMIT_EXCEEDED
 ])
 
 /**
@@ -239,6 +240,18 @@ export abstract class BaseErrorProcessor {
 
   protected suggestRecoveryStrategy(code: ErrorCode, retryable: boolean): RecoveryStrategy {
     if (retryable) {
+      return RecoveryStrategy.RETRY
+    }
+
+    if (code === ErrorCode.DEEPSEEK_INVALID_API_KEY) {
+      return RecoveryStrategy.USER_ACTION
+    }
+
+    if (code === ErrorCode.DEEPSEEK_CACHE_ERROR || code === ErrorCode.DEEPSEEK_REASONING_FAILED) {
+      return RecoveryStrategy.FALLBACK
+    }
+
+    if (code === ErrorCode.DEEPSEEK_RATE_LIMIT_EXCEEDED) {
       return RecoveryStrategy.RETRY
     }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { DeepSeekConfig } from '@/types/ai'
 import { ConnectionStatus } from '@/types/ai'
+import { ErrorCode } from '@/types/error'
 import { DeepSeekConnectionManager } from '../connection/DeepSeekConnectionManager'
 
 function createConfig(overrides: Partial<DeepSeekConfig> = {}): DeepSeekConfig {
@@ -89,7 +90,10 @@ describe('DeepSeekConnectionManager', () => {
     const fetchMock = createFetchStub({}, 401)
     const manager = new DeepSeekConnectionManager({ fetchImplementation: fetchMock })
 
-    await expect(manager.testConnection(createConfig())).rejects.toThrow('无效')
+    await expect(manager.testConnection(createConfig())).rejects.toMatchObject({
+      code: ErrorCode.DEEPSEEK_INVALID_API_KEY,
+      userMessage: expect.stringMatching(/密钥/i)
+    })
   })
 })
 

@@ -17,10 +17,12 @@ import type { StatusConfig, ExtensionConfig } from '@/types/config'
 
 interface RequestBehavior {
   fail?: boolean
+  failuresBeforeSuccess?: number
 }
 
 interface AdapterBehavior {
   failRequest?: boolean
+  failuresBeforeSuccess?: number
 }
 
 function createConnectionConfig(): ConnectionConfig {
@@ -122,6 +124,7 @@ class StubConnectionManager extends BaseConnectionManager {
 
 class StubRequestHandler extends BaseRequestHandler {
   public executeCount = 0
+  private retryFailures = 0
 
   constructor(private readonly behavior: RequestBehavior = {}) {
     super()
@@ -133,6 +136,14 @@ class StubRequestHandler extends BaseRequestHandler {
     this.executeCount += 1
     if (this.behavior.fail) {
       throw new Error('request failed')
+    }
+
+    if (
+      typeof this.behavior.failuresBeforeSuccess === 'number' &&
+      this.retryFailures < this.behavior.failuresBeforeSuccess
+    ) {
+      this.retryFailures += 1
+      throw new Error('rate limit')
     }
 
     const response: AIResponse = {
@@ -166,6 +177,9 @@ class StubErrorProcessor extends BaseErrorProcessor {
   protected getProviderErrorCode(error: unknown, _metadata: ErrorMetadata): ErrorCode | null {
     if (error instanceof Error && error.message === 'request failed') {
       return ErrorCode.API_KEY_INVALID
+    }
+    if (error instanceof Error && error.message === 'rate limit') {
+      return ErrorCode.DEEPSEEK_RATE_LIMIT_EXCEEDED
     }
     return null
   }
@@ -238,7 +252,10 @@ class TestAdapter extends BaseAIServiceAdapter {
 
   protected createRequestHandler(): StubRequestHandler {
     const behavior = TestAdapter.nextBehavior
-    this.requestHandlerInstance = new StubRequestHandler({ fail: behavior.failRequest })
+    this.requestHandlerInstance = new StubRequestHandler({
+      fail: behavior.failRequest,
+      failuresBeforeSuccess: behavior.failuresBeforeSuccess
+    })
     return this.requestHandlerInstance
   }
 
@@ -273,6 +290,25 @@ describe('BaseAIServiceAdapter', () => {
     expect(stats.successfulRequests).toBe(1)
     expect(stats.failedRequests).toBe(0)
     expect(eventBus.events.some(evt => evt.event === GameEvent.AI_REQUEST_COMPLETED)).toBe(true)
+  })
+
+  it('retries retryable errors before succeeding', async () => {
+    const retryBus = new StubEventBus()
+    const retryingAdapter = new TestAdapter({ failuresBeforeSuccess: 1 }, retryBus)
+    await retryingAdapter.initialize(createAdapterConfig())
+
+    const request = createRequest('req-retry')
+    const response = await retryingAdapter.sendRequest(request)
+
+    expect(response.success).toBe(true)
+    expect(retryingAdapter.requestHandlerStub.executeCount).toBe(2)
+    expect(retryingAdapter.errorProcessorStub.processed).toHaveLength(1)
+    expect(retryBus.events.filter(evt => evt.event === GameEvent.AI_REQUEST_FAILED)).toHaveLength(0)
+
+    const completionEvent = retryBus.events.find(evt => evt.event === GameEvent.AI_REQUEST_COMPLETED)
+    expect((completionEvent?.payload as { attempt?: number } | undefined)?.attempt).toBe(1)
+
+    await retryingAdapter.disconnect()
   })
 
   it('converts request errors via error processor', async () => {

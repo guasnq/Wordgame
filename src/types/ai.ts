@@ -70,6 +70,17 @@ export interface ResponseMetadata {
   tokenUsage: TokenUsage
   modelUsed: string
   apiVersion: string
+  providerMessageId?: string
+  reasoningContent?: string
+  reasoningSegments?: string[]
+  cacheUsage?: {
+    hitTokens: number
+    missTokens: number
+    writeTokens?: number
+  }
+  compatibilityMode?: 'openai' | 'anthropic' | 'native'
+  rawText?: string
+  extras?: Record<string, unknown>
 }
 
 export interface TokenUsage {

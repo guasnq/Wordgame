@@ -1,9 +1,12 @@
 import type { ConnectionTestResult, DeepSeekConfig } from '@/types/ai'
 import { BaseConnectionManager, type ConnectionManagerOptions } from './BaseConnectionManager'
+import { DeepSeekErrorProcessor } from '../errors/DeepSeekErrorProcessor'
+import type { ErrorMetadata } from '../errors/BaseErrorProcessor'
 
 export interface DeepSeekConnectionManagerOptions extends ConnectionManagerOptions {
   fetchImplementation?: typeof fetch
   testEndpoint?: string
+  errorProcessor?: DeepSeekErrorProcessor
 }
 
 const API_KEY_PATTERN = /^sk-[A-Za-z0-9]{32,}$/i
@@ -12,12 +15,13 @@ const DEFAULT_TEST_ENDPOINT = '/v1/models'
 export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekConfig> {
   private readonly fetchImpl: typeof fetch
   private readonly testEndpoint: string
+  private readonly errorProcessor: DeepSeekErrorProcessor
   private reasoningSupported = false
   private reasoningEnabled = false
   private desiredReasoningMode?: boolean
 
   constructor(options: DeepSeekConnectionManagerOptions = {}) {
-    const { fetchImplementation, testEndpoint, ...baseOptions } = options
+    const { fetchImplementation, testEndpoint, errorProcessor, ...baseOptions } = options
     super(baseOptions)
 
     const runtimeFetch = fetchImplementation ?? (globalThis as { fetch?: typeof fetch }).fetch
@@ -28,6 +32,11 @@ export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekCon
     // 绑定fetch的this上下文，避免"Illegal invocation"错误
     this.fetchImpl = runtimeFetch.bind(globalThis)
     this.testEndpoint = testEndpoint ?? DEFAULT_TEST_ENDPOINT
+    this.errorProcessor =
+      errorProcessor ??
+      new DeepSeekErrorProcessor({
+        logger: baseOptions.logger
+      })
   }
 
   setReasoningMode(enabled: boolean): void {
@@ -112,16 +121,37 @@ export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekCon
         headers: this.buildHeaders(config)
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new Error(`无法连接DeepSeek服务：${message}`)
+      this.throwProcessedError(error, 'deepseek.fetch_models', {
+        apiUrl: config.apiUrl
+      })
     }
 
     if (response.status === 401 || response.status === 403) {
-      throw new Error('DeepSeek API密钥无效或无访问权限')
+      this.throwProcessedError(
+        {
+          error: {
+            code: 'invalid_api_key',
+            message: 'DeepSeek API密钥无效或无访问权限',
+            status: response.status
+          }
+        },
+        'deepseek.fetch_models',
+        { apiUrl: config.apiUrl }
+      )
     }
 
     if (!response.ok) {
-      throw new Error(`DeepSeek服务返回异常：${response.status} ${response.statusText}`.trim())
+      this.throwProcessedError(
+        {
+          error: {
+            code: response.status === 429 ? 'rate_limit_exceeded' : 'service_error',
+            message: `DeepSeek服务返回异常：${response.status} ${response.statusText}`.trim(),
+            status: response.status
+          }
+        },
+        'deepseek.fetch_models',
+        { apiUrl: config.apiUrl }
+      )
     }
 
     let payload: Record<string, unknown> = {}
@@ -183,5 +213,18 @@ export class DeepSeekConnectionManager extends BaseConnectionManager<DeepSeekCon
     }
 
     return Array.from(features)
+  }
+
+  private throwProcessedError(error: unknown, stage: string, additional?: Record<string, unknown>): never {
+    const context: ErrorMetadata['context'] = {
+      module: 'deepseek-connection',
+      function: stage,
+      additionalData: additional && Object.keys(additional).length > 0 ? additional : undefined
+    }
+
+    throw this.errorProcessor.process(error, {
+      stage,
+      context
+    })
   }
 }
